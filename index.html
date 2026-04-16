@@ -422,20 +422,18 @@ function selectGift(id){
 async function confirmBooking(){
   if(!selectedId) return;
 
-  // 1. Tìm nút bấm và KHÓA NGAY LẬP TỨC
   const btn = document.getElementById("confirm-btn");
-  const originalText = btn.innerHTML;
+  const oldTxt = btn.innerHTML;
   
+  // Khóa cứng nút ngay giây đầu tiên
   btn.disabled = true;
-  btn.style.pointerEvents = "none"; // Chặn mọi cú click chuột
-  btn.style.opacity = "0.7";        // Làm mờ nút để báo hiệu đang chờ
-  btn.innerHTML = "Đang gửi xác nhận... ⏳";
+  btn.style.pointerEvents = "none";
+  btn.style.opacity = "0.6";
+  btn.innerHTML = "Đang gửi... ⏳";
 
   try {
     const r = await saveB(selectedId, uName, uDept);
-    
     if(r){
-      // Thành công: Chuyển trang
       localStorage.setItem(KEY, selectedId);
       document.getElementById("cf-name").textContent = uName;
       document.getElementById("cf-dept").textContent = uDept;
@@ -444,27 +442,21 @@ async function confirmBooking(){
       document.getElementById("cf-img").src = g.img;
       setStep(3);
     } else {
-      // Thất bại (Ví dụ: quà đã bị người khác hớt tay trên)
       alert("Mẫu này vừa có người chọn mất rồi, vui lòng chọn mẫu khác!");
-      
-      // MỞ KHÓA NÚT để họ chọn lại mẫu khác
+      // Mở lại nút nếu quà bị trùng
       btn.disabled = false;
       btn.style.pointerEvents = "auto";
       btn.style.opacity = "1";
-      btn.innerHTML = originalText;
-      
-      await getB(); // Tải lại danh sách quà mới nhất
+      btn.innerHTML = oldTxt;
+      await getB();
       renderGrid();
     }
-  } catch (e) {
-    // Lỗi mạng hoặc lỗi hệ thống
-    alert("Lỗi kết nối server, vui lòng bấm xác nhận lại!");
-    
-    // MỞ KHÓA NÚT để họ bấm lại
+  } catch(e) {
+    alert("Lỗi kết nối!");
     btn.disabled = false;
     btn.style.pointerEvents = "auto";
     btn.style.opacity = "1";
-    btn.innerHTML = originalText;
+    btn.innerHTML = oldTxt;
   }
 }
   
