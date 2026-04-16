@@ -243,7 +243,7 @@ input::placeholder{color:var(--muted);opacity:.6}
 <!-- Confirm Bar -->
 <div id="confirm-bar" class="confirm-bar">
   <div class="bar-text">Bạn đã chọn <strong id="bar-name"></strong></div>
-  <button class="btn-confirm" onclick="confirmBooking(this)">Xác nhận</button>
+  <button id="confirm-btn" class="btn-primary" onclick="confirmBooking(this)" disabled>Xác nhận chọn mẫu này</button>
 </div>
 
 <script>
@@ -429,11 +429,14 @@ function selectGift(id){
   document.getElementById("confirm-bar").classList.add("visible");
 }
 
-async function confirmBooking() {
+async function confirmBooking(btn) {
   if(!selectedId) return;
 
-  // Tự động tìm nút Xác nhận qua ID
-  const btn = document.getElementById("confirm-btn");
+  // Đề phòng trường hợp HTML bị lỡ tay xóa mất 'this', code sẽ tự động tìm lại bằng ID
+  if (!btn || !btn.style) {
+    btn = document.getElementById("confirm-btn");
+  }
+
   const oldTxt = btn.innerHTML;
 
   // KHÓA SIÊU CỨNG
@@ -454,7 +457,7 @@ async function confirmBooking() {
       setStep(3);
     } else {
       alert("Mẫu này vừa có người chọn mất rồi, vui lòng chọn mẫu khác!");
-      // Phục hồi nút để người dùng chọn lại
+      // Phục hồi lại nút nếu bị trùng quà
       btn.disabled = false;
       btn.style.pointerEvents = "auto";
       btn.style.opacity = "1";
@@ -463,8 +466,9 @@ async function confirmBooking() {
       renderGrid();
     }
   } catch(e) {
-    alert("Lỗi khi gửi dữ liệu!");
-    // Phục hồi nút nếu mạng rớt
+    console.error("Lỗi chi tiết: ", e);
+    alert("Lỗi kết nối, vui lòng thử lại!");
+    // Phục hồi lại nút nếu rớt mạng
     btn.disabled = false;
     btn.style.pointerEvents = "auto";
     btn.style.opacity = "1";
