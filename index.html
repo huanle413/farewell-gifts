@@ -356,30 +356,35 @@ function setStep(n){
 }
 
 // ── USER FLOW ──────────────────────────────────────────────────
-async function submitInfo(btn){
-  const n=document.getElementById("name").value.trim();
-  const d=document.getElementById("dept").value.trim();
-  if(!n||!d){alert("Vui lòng điền đầy đủ thông tin!");return}
-  
-  // Hiệu ứng Loading
+async function submitInfo() {
+  const n = document.getElementById("name").value.trim();
+  const d = document.getElementById("dept").value.trim();
+  if(!n || !d) { alert("Vui lòng điền đầy đủ thông tin!"); return; }
+
+  // Tự động tìm nút và KHÓA SIÊU CỨNG (Đóng băng cả CSS)
+  const btn = document.querySelector("#step1 .btn-primary");
   const oldTxt = btn.innerHTML;
   btn.disabled = true;
+  btn.style.pointerEvents = "none"; // Khóa hoàn toàn hiệu ứng click lún
+  btn.style.opacity = "0.6";        // Làm mờ nút đi
   btn.innerHTML = "Đang tải dữ liệu... ⏳";
 
   try {
-    uName=n; uDept=d;
-    document.getElementById("user-display").textContent=n;
-    await getB();      // Đợi load từ Sheet (mất vài giây)
-    await getHidden(); // Đợi load danh sách ẩn
+    uName = n; uDept = d;
+    document.getElementById("user-display").textContent = n;
+    await getB();      
+    await getHidden(); 
     renderGrid();
     setStep(2);
   } catch(e) {
     alert("Lỗi kết nối, vui lòng thử lại!");
+    // Mở khóa lại nếu có lỗi
     btn.disabled = false;
+    btn.style.pointerEvents = "auto";
+    btn.style.opacity = "1";
     btn.innerHTML = oldTxt;
   }
 }
-
 function renderGrid(){
   const grid=document.getElementById("gifts-grid");
   grid.innerHTML="";
@@ -424,12 +429,17 @@ function selectGift(id){
   document.getElementById("confirm-bar").classList.add("visible");
 }
 
-async function confirmBooking(btn){
+async function confirmBooking() {
   if(!selectedId) return;
-  
-  // Hiệu ứng Loading
+
+  // Tự động tìm nút Xác nhận qua ID
+  const btn = document.getElementById("confirm-btn");
   const oldTxt = btn.innerHTML;
+
+  // KHÓA SIÊU CỨNG
   btn.disabled = true;
+  btn.style.pointerEvents = "none";
+  btn.style.opacity = "0.6";
   btn.innerHTML = "Đang gửi xác nhận... ⏳";
 
   try {
@@ -444,14 +454,20 @@ async function confirmBooking(btn){
       setStep(3);
     } else {
       alert("Mẫu này vừa có người chọn mất rồi, vui lòng chọn mẫu khác!");
+      // Phục hồi nút để người dùng chọn lại
       btn.disabled = false;
+      btn.style.pointerEvents = "auto";
+      btn.style.opacity = "1";
       btn.innerHTML = oldTxt;
-      await getB(); // Refresh lại danh sách
+      await getB(); 
       renderGrid();
     }
   } catch(e) {
     alert("Lỗi khi gửi dữ liệu!");
+    // Phục hồi nút nếu mạng rớt
     btn.disabled = false;
+    btn.style.pointerEvents = "auto";
+    btn.style.opacity = "1";
     btn.innerHTML = oldTxt;
   }
 }
