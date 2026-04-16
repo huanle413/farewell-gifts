@@ -360,6 +360,13 @@ async function submitInfo(){
   const n=document.getElementById("name").value.trim();
   const d=document.getElementById("dept").value.trim();
   if(!n||!d){alert("Vui lòng điền đầy đủ thông tin!");return}
+
+  // --- THÊM ĐÚNG 3 DÒNG NÀY ---
+  const btn = document.querySelector("#step1 button");
+  btn.innerText = "Đang tải... ⏳"; 
+  btn.style.pointerEvents = "none"; // Khóa click hoàn toàn
+  // ----------------------------
+  
   uName=n;uDept=d;
   document.getElementById("user-display").textContent=n;
   await getB();
@@ -414,6 +421,15 @@ function selectGift(id){
 
 async function confirmBooking(){
   if(!selId) return;
+
+  // --- THÊM ĐÚNG 3 DÒNG NÀY ---
+  const btn = document.getElementById("confirm-btn");
+  if(btn) {
+    btn.innerText = "Đang gửi... ⏳";
+    btn.style.pointerEvents = "none"; // Khóa click
+  }
+  // ----------------------------
+  
   await getB();
   if(bookingsCache[selId]){alert("Ối! Có người vừa chọn chiếc này rồi. Hãy chọn chiếc khác nhé!");renderGrid();document.getElementById("confirm-bar").classList.remove("visible");selId=null;return}
   const success=await saveB(selId,uName,uDept);
