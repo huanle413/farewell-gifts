@@ -289,7 +289,8 @@ async function apiCall(action,data={}){
   try{
     const r=await fetch(API_URL,{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'text/plain;charset=utf-8'}, // Đã đổi sang text/plain
+      redirect:'follow', // Đã thêm lệnh cho phép chuyển hướng
       body:JSON.stringify({action,...data})
     });
     const res=await r.json();
