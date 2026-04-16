@@ -169,7 +169,7 @@ input::placeholder{color:var(--muted);opacity:.6}
           <label>Phòng Ban / Đơn Vị</label>
           <input type="text" id="dept" placeholder="Marketing" autocomplete="organization"/>
         </div>
-        <button id="btn-step1" class="btn-primary" onclick="submitInfo(this)">Tiếp theo</button>
+        <button class="btn-primary" onclick="submitInfo()">Tiếp theo</button>
       </div>
     </div>
   </div>
@@ -243,7 +243,7 @@ input::placeholder{color:var(--muted);opacity:.6}
 <!-- Confirm Bar -->
 <div id="confirm-bar" class="confirm-bar">
   <div class="bar-text">Bạn đã chọn <strong id="bar-name"></strong></div>
-  <button id="confirm-btn" class="btn-primary" onclick="confirmBooking(this)" disabled>Xác nhận chọn mẫu này</button>
+  <button class="btn-confirm" onclick="confirmBooking()">Xác nhận</button>
 </div>
 
 <script>
@@ -356,35 +356,18 @@ function setStep(n){
 }
 
 // ── USER FLOW ──────────────────────────────────────────────────
-async function submitInfo() {
-  const n = document.getElementById("name").value.trim();
-  const d = document.getElementById("dept").value.trim();
-  if(!n || !d) { alert("Vui lòng điền đầy đủ thông tin!"); return; }
-
-  // Tự động tìm nút và KHÓA SIÊU CỨNG (Đóng băng cả CSS)
-  const btn = document.querySelector("#step1 .btn-primary");
-  const oldTxt = btn.innerHTML;
-  btn.disabled = true;
-  btn.style.pointerEvents = "none"; // Khóa hoàn toàn hiệu ứng click lún
-  btn.style.opacity = "0.6";        // Làm mờ nút đi
-  btn.innerHTML = "Đang tải dữ liệu... ⏳";
-
-  try {
-    uName = n; uDept = d;
-    document.getElementById("user-display").textContent = n;
-    await getB();      
-    await getHidden(); 
-    renderGrid();
-    setStep(2);
-  } catch(e) {
-    alert("Lỗi kết nối, vui lòng thử lại!");
-    // Mở khóa lại nếu có lỗi
-    btn.disabled = false;
-    btn.style.pointerEvents = "auto";
-    btn.style.opacity = "1";
-    btn.innerHTML = oldTxt;
-  }
+async function submitInfo(){
+  const n=document.getElementById("name").value.trim();
+  const d=document.getElementById("dept").value.trim();
+  if(!n||!d){alert("Vui lòng điền đầy đủ thông tin!");return}
+  uName=n;uDept=d;
+  document.getElementById("user-display").textContent=n;
+  await getB();
+  await getHidden();
+  renderGrid();
+  setStep(2);
 }
+
 function renderGrid(){
   const grid=document.getElementById("gifts-grid");
   grid.innerHTML="";
@@ -429,51 +412,19 @@ function selectGift(id){
   document.getElementById("confirm-bar").classList.add("visible");
 }
 
-async function confirmBooking(btn) {
-  if(!selectedId) return;
-
-  // Đề phòng trường hợp HTML bị lỡ tay xóa mất 'this', code sẽ tự động tìm lại bằng ID
-  if (!btn || !btn.style) {
-    btn = document.getElementById("confirm-btn");
-  }
-
-  const oldTxt = btn.innerHTML;
-
-  // KHÓA SIÊU CỨNG
-  btn.disabled = true;
-  btn.style.pointerEvents = "none";
-  btn.style.opacity = "0.6";
-  btn.innerHTML = "Đang gửi xác nhận... ⏳";
-
-  try {
-    const r = await saveB(selectedId, uName, uDept);
-    if(r){
-      localStorage.setItem(KEY, selectedId);
-      document.getElementById("cf-name").textContent = uName;
-      document.getElementById("cf-dept").textContent = uDept;
-      const g = GIFTS.find(x => x.id === selectedId);
-      document.getElementById("cf-gift").textContent = g.label;
-      document.getElementById("cf-img").src = g.img;
-      setStep(3);
-    } else {
-      alert("Mẫu này vừa có người chọn mất rồi, vui lòng chọn mẫu khác!");
-      // Phục hồi lại nút nếu bị trùng quà
-      btn.disabled = false;
-      btn.style.pointerEvents = "auto";
-      btn.style.opacity = "1";
-      btn.innerHTML = oldTxt;
-      await getB(); 
-      renderGrid();
-    }
-  } catch(e) {
-    console.error("Lỗi chi tiết: ", e);
-    alert("Lỗi kết nối, vui lòng thử lại!");
-    // Phục hồi lại nút nếu rớt mạng
-    btn.disabled = false;
-    btn.style.pointerEvents = "auto";
-    btn.style.opacity = "1";
-    btn.innerHTML = oldTxt;
-  }
+async function confirmBooking(){
+  if(!selId) return;
+  await getB();
+  if(bookingsCache[selId]){alert("Ối! Có người vừa chọn chiếc này rồi. Hãy chọn chiếc khác nhé!");renderGrid();document.getElementById("confirm-bar").classList.remove("visible");selId=null;return}
+  const success=await saveB(selId,uName,uDept);
+  if(!success){alert("Lỗi!");return;}
+  const g=GIFTS.find(x=>x.id===selId);
+  document.getElementById("cf-name").textContent=uName;
+  document.getElementById("cf-dept").textContent=uDept;
+  document.getElementById("cf-gift").textContent=g.label;
+  document.getElementById("cf-img").src=g.img;
+  document.getElementById("confirm-bar").classList.remove("visible");
+  setStep(3);
 }
 
 // ── ADMIN ──────────────────────────────────────────────────────
