@@ -420,46 +420,29 @@ function selectGift(id){
 }
 
 async function confirmBooking(){
-  if(!selectedId) return;
+  if(!selId) return;
 
+  // --- THÊM ĐÚNG 3 DÒNG NÀY ---
   const btn = document.getElementById("confirm-btn");
-  const oldTxt = btn.innerHTML;
-  
-  // Khóa cứng nút ngay giây đầu tiên
-  btn.disabled = true;
-  btn.style.pointerEvents = "none";
-  btn.style.opacity = "0.6";
-  btn.innerHTML = "Đang gửi... ⏳";
-
-  try {
-    const r = await saveB(selectedId, uName, uDept);
-    if(r){
-      localStorage.setItem(KEY, selectedId);
-      document.getElementById("cf-name").textContent = uName;
-      document.getElementById("cf-dept").textContent = uDept;
-      const g = GIFTS.find(x => x.id === selectedId);
-      document.getElementById("cf-gift").textContent = g.label;
-      document.getElementById("cf-img").src = g.img;
-      setStep(3);
-    } else {
-      alert("Mẫu này vừa có người chọn mất rồi, vui lòng chọn mẫu khác!");
-      // Mở lại nút nếu quà bị trùng
-      btn.disabled = false;
-      btn.style.pointerEvents = "auto";
-      btn.style.opacity = "1";
-      btn.innerHTML = oldTxt;
-      await getB();
-      renderGrid();
-    }
-  } catch(e) {
-    alert("Lỗi kết nối!");
-    btn.disabled = false;
-    btn.style.pointerEvents = "auto";
-    btn.style.opacity = "1";
-    btn.innerHTML = oldTxt;
+  if(btn) {
+    btn.innerText = "Đang gửi... ⏳";
+    btn.style.pointerEvents = "none"; // Khóa click
   }
-}
+  // ----------------------------
   
+  await getB();
+  if(bookingsCache[selId]){alert("Ối! Có người vừa chọn chiếc này rồi. Hãy chọn chiếc khác nhé!");renderGrid();document.getElementById("confirm-bar").classList.remove("visible");selId=null;return}
+  const success=await saveB(selId,uName,uDept);
+  if(!success){alert("Lỗi!");return;}
+  const g=GIFTS.find(x=>x.id===selId);
+  document.getElementById("cf-name").textContent=uName;
+  document.getElementById("cf-dept").textContent=uDept;
+  document.getElementById("cf-gift").textContent=g.label;
+  document.getElementById("cf-img").src=g.img;
+  document.getElementById("confirm-bar").classList.remove("visible");
+  setStep(3);
+}
+
 // ── ADMIN ──────────────────────────────────────────────────────
 function switchTab(tab,btn){
   document.querySelectorAll(".admin-tab").forEach(t=>t.classList.remove("active"));
