@@ -289,15 +289,23 @@ async function apiCall(action,data={}){
   try{
     const r=await fetch(API_URL,{
       method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'}, // Đã đổi sang text/plain
-      redirect:'follow', // Đã thêm lệnh cho phép chuyển hướng
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      redirect:'follow',
       body:JSON.stringify({action,...data})
     });
-    const res=await r.json();
-    return res.status==='success'?res:null;
+    // Thêm đoạn này để ép nó hiện ra lỗi từ Google nếu có
+    const textRes = await r.text();
+    try {
+        const res = JSON.parse(textRes);
+        return res.status === 'success' ? res : null;
+    } catch (parseError) {
+        alert("Server Google không trả về JSON, mà trả về: " + textRes.substring(0, 50) + "...");
+        return null;
+    }
   }catch(e){
     console.error(e);
-    alert('Lỗi kết nối!');
+    // SỬA DÒNG NÀY ĐỂ XEM LỖI THẬT
+    alert('Lỗi thật sự: ' + e.message); 
     return null;
   }
 }
